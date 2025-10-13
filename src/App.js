@@ -24,6 +24,7 @@ function App() {
           <ul className="nav-links">
             <li><a href="#features">Features</a></li>
             <li><a href="#download">Download</a></li>
+            <li><a href="#contact">Contact</a></li>
           </ul>
         </nav>
 
@@ -234,13 +235,115 @@ function App() {
           </div>
         </section>
 
+        {/* Contact Section */}
+        <section id="contact" className="contact-section">
+          <div className="contact-content">
+            <div className="section-header">
+              <div className="section-badge">CONTACT</div>
+              <h2>Get In Touch</h2>
+              <p>
+                Have questions, feedback, or need support? We'd love to hear from you. 
+                Send us a message and we'll get back to you as soon as possible.
+              </p>
+            </div>
+            
+            <div className="contact-container">
+              <div className="contact-info">
+                <div className="contact-item">
+                  <span className="contact-icon">✉️</span>
+                  <div>
+                    <h3>Email Us</h3>
+                    <p>Send us your questions or feedback</p>
+                    <a href="mailto:info@junepoint.com" className="contact-link">
+                      info@junepoint.com
+                    </a>
+                  </div>
+                </div>
+                
+                <div className="contact-item">
+                  <span className="contact-icon">🕒</span>
+                  <div>
+                    <h3>Response Time</h3>
+                    <p>We typically respond within 24-48 hours</p>
+                  </div>
+                </div>
+                
+                <div className="contact-item">
+                  <span className="contact-icon">💬</span>
+                  <div>
+                    <h3>What We Help With</h3>
+                    <p>Technical support, feature requests, general inquiries</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="contact-form-container">
+                <form className="contact-form" action="mailto:info@junepoint.com" method="post" encType="text/plain">
+                  <div className="form-group">
+                    <label htmlFor="name">Name</label>
+                    <input 
+                      type="text" 
+                      id="name" 
+                      name="name" 
+                      required 
+                      className="form-input"
+                      placeholder="Your name"
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="email">Email</label>
+                    <input 
+                      type="email" 
+                      id="email" 
+                      name="email" 
+                      required 
+                      className="form-input"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="subject">Subject</label>
+                    <input 
+                      type="text" 
+                      id="subject" 
+                      name="subject" 
+                      required 
+                      className="form-input"
+                      placeholder="What's this about?"
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="message">Message</label>
+                    <textarea 
+                      id="message" 
+                      name="message" 
+                      required 
+                      className="form-textarea"
+                      placeholder="Tell us what's on your mind..."
+                      rows="6"
+                    ></textarea>
+                  </div>
+                  
+                  <button type="submit" className="btn btn-primary form-submit">
+                    Send Message
+                    <span>→</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Footer */}
         <footer className="footer">
           <ul className="footer-links">
             <li><a href="/privacy_policy/privacy.html">Privacy Policy</a></li>
             <li><a href="/terms_of_service/terms.html">Terms of Service</a></li>
             <li><a href="#support">Support</a></li>
-            <li><a href="#contact">Contact</a></li>
+            <li><a href="/contact/contact.html">Contact</a></li>
           </ul>
           <p>© 2025 Burn Journal. All rights reserved.</p>
           <p style={{ marginTop: '1rem', fontSize: '0.875rem' }}>
