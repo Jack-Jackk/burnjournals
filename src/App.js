@@ -1,6 +1,38 @@
 import './App.css';
 
 function App() {
+  const handleContactSubmit = (e) => {
+    e.preventDefault();
+    
+    // Get form elements directly for better compatibility
+    const form = e.target;
+    const name = form.elements.name.value;
+    const email = form.elements.email.value;
+    const subject = form.elements.subject.value;
+    const message = form.elements.message.value;
+    
+    // Validate required fields
+    if (!name || !email || !subject || !message) {
+      alert('Please fill in all fields before submitting.');
+      return;
+    }
+    
+    // Create mailto URL with form data
+    const emailBody = `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`;
+    const mailtoUrl = `mailto:info@junepoint.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    
+    // Try to open email client
+    try {
+      window.location.href = mailtoUrl;
+    } catch (error) {
+      // Fallback: copy email to clipboard and show instructions
+      navigator.clipboard.writeText(`info@junepoint.com\n\nSubject: ${subject}\n\n${emailBody}`).then(() => {
+        alert('Email details copied to clipboard! Please paste into your email client.');
+      }).catch(() => {
+        alert(`Please send an email to: info@junepoint.com\n\nSubject: ${subject}\n\n${emailBody}`);
+      });
+    }
+  };
   return (
     <div className="App">
       {/* Animated Background */}
@@ -278,18 +310,7 @@ function App() {
               </div>
               
               <div className="contact-form-container">
-                <form className="contact-form" onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.target);
-                  const name = formData.get('name');
-                  const email = formData.get('email');
-                  const subject = formData.get('subject');
-                  const message = formData.get('message');
-                  
-                  // Create mailto URL with form data
-                  const mailtoUrl = `mailto:info@junepoint.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`)}`;
-                  window.location.href = mailtoUrl;
-                }}>
+                <form className="contact-form" onSubmit={handleContactSubmit}>
                   <div className="form-group">
                     <label htmlFor="contact-name">Name</label>
                     <input 
