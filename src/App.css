@@ -666,6 +666,29 @@ body {
   align-self: flex-start;
 }
 
+.contact-form-note {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: rgba(10, 126, 164, 0.1);
+  border: 1px solid var(--accent-primary);
+  border-radius: 8px;
+}
+
+.contact-form-note p {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.note-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .hero h1 {

@@ -278,52 +278,67 @@ function App() {
               </div>
               
               <div className="contact-form-container">
-                <form className="contact-form" action="mailto:info@junepoint.com" method="post" encType="text/plain">
+                <form className="contact-form" onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target);
+                  const name = formData.get('name');
+                  const email = formData.get('email');
+                  const subject = formData.get('subject');
+                  const message = formData.get('message');
+                  
+                  // Create mailto URL with form data
+                  const mailtoUrl = `mailto:info@junepoint.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`)}`;
+                  window.location.href = mailtoUrl;
+                }}>
                   <div className="form-group">
-                    <label htmlFor="name">Name</label>
+                    <label htmlFor="contact-name">Name</label>
                     <input 
                       type="text" 
-                      id="name" 
+                      id="contact-name" 
                       name="name" 
                       required 
                       className="form-input"
                       placeholder="Your name"
+                      autoComplete="name"
                     />
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="email">Email</label>
+                    <label htmlFor="contact-email">Email</label>
                     <input 
                       type="email" 
-                      id="email" 
+                      id="contact-email" 
                       name="email" 
                       required 
                       className="form-input"
                       placeholder="your@email.com"
+                      autoComplete="email"
                     />
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="subject">Subject</label>
+                    <label htmlFor="contact-subject">Subject</label>
                     <input 
                       type="text" 
-                      id="subject" 
+                      id="contact-subject" 
                       name="subject" 
                       required 
                       className="form-input"
                       placeholder="What's this about?"
+                      autoComplete="off"
                     />
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="message">Message</label>
+                    <label htmlFor="contact-message">Message</label>
                     <textarea 
-                      id="message" 
+                      id="contact-message" 
                       name="message" 
                       required 
                       className="form-textarea"
                       placeholder="Tell us what's on your mind..."
                       rows="6"
+                      autoComplete="off"
                     ></textarea>
                   </div>
                   
@@ -332,6 +347,13 @@ function App() {
                     <span>→</span>
                   </button>
                 </form>
+                
+                <div className="contact-form-note">
+                  <p>
+                    <span className="note-icon">ℹ️</span>
+                    Clicking "Send Message" will open your email client with a pre-filled message to info@junepoint.com
+                  </p>
+                </div>
               </div>
             </div>
           </div>
