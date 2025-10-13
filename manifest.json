@@ -1,0 +1,30 @@
+{
+  "short_name": "Burn Journal",
+  "name": "Burn Journal - Write, Reflect, Let Go",
+  "icons": [
+    {
+      "src": "brand_kit/burnjournal-favicon-32x32.ico",
+      "sizes": "32x32 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "brand_kit/burnjournal-favicon-128x128.ico",
+      "type": "image/x-icon",
+      "sizes": "128x128"
+    },
+    {
+      "src": "brand_kit/burnjournal-favicon-256x256.ico",
+      "type": "image/x-icon",
+      "sizes": "256x256"
+    },
+    {
+      "src": "brand_kit/burnjournal-favicon-512x512.ico",
+      "type": "image/x-icon",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#151718",
+  "background_color": "#151718"
+}
