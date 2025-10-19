@@ -3,8 +3,16 @@
   <head>
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/brand_kit/burnjournal-favicon-32x32.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#151718" />
+    
+    <!-- Performance optimizations -->
+    <meta http-equiv="x-dns-prefetch-control" content="on" />
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+    <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" as="style" />
     <meta
       name="description"
       content="Burn Journal - A therapeutic journaling app that helps you write, reflect, and let go. Track your thoughts, emotions, and growth with our unique write-only format."
@@ -27,12 +35,18 @@
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/brand_kit/burnjournal-favicon-256x256.ico" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
     
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts - optimized loading -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+    <noscript>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    </noscript>
     
     <title>Burn Journal - Write, Reflect, Let Go</title>
+  <!-- Preload carousel images for smoother first paint -->
+  <link rel="preload" as="image" href="%PUBLIC_URL%/brand_kit/Burn-1-portrait.png">
+  <link rel="preload" as="image" href="%PUBLIC_URL%/brand_kit/Burn-2-portrait.png">
+  <link rel="preload" as="image" href="%PUBLIC_URL%/brand_kit/Burn-3-portrait.png">
+  <link rel="preload" as="image" href="%PUBLIC_URL%/brand_kit/Burn-4-portrait.png">
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

@@ -1,7 +1,181 @@
 import './App.css';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+
+// Using lightweight image tiles for the carousel for improved performance
 
 function App() {
-  const handleContactSubmit = (e) => {
+  const [showBetaModal, setShowBetaModal] = useState(false);
+  
+  // Memoize screenshot data for carousel
+  const screenshots = useMemo(() => [
+    { src: "/brand_kit/Burn-1-portrait.png", alt: "Burn Journal Burn 1" },
+    { src: "/brand_kit/Burn-2-portrait.png", alt: "Burn Journal Burn 2" },
+    { src: "/brand_kit/Burn-3-portrait.png", alt: "Burn Journal Burn 3" },
+    { src: "/brand_kit/Burn-4-portrait.png", alt: "Burn Journal Burn 4" },
+  ], []);
+
+  // Optimized carousel component (renders a duplicated set of tiles and animates via requestAnimationFrame)
+  const OptimizedCarousel = ({ items, speed = 0.03 }) => {
+    const containerRef = useRef(null);
+    const trackRef = useRef(null);
+    const rafRef = useRef(null);
+    const lastTimeRef = useRef(null);
+    const offsetRef = useRef(0);
+    const pausedRef = useRef(false);
+  const cycleWidthRef = useRef(0); // width of one full cycle (one original set * repeats)
+  const [repeatCount, setRepeatCount] = useState(2);
+    // measure widths after preload and keep updated with ResizeObserver
+    useEffect(() => {
+      let ro;
+      let io;
+      let cancelled = false;
+
+      const preloadImages = async () => {
+        const promises = items.map(it => new Promise((res) => {
+          const img = new Image();
+          img.src = it.src;
+          img.onload = img.onerror = () => res();
+        }));
+        await Promise.all(promises);
+        if (cancelled) return;
+
+  const track = trackRef.current;
+  const containerEl = containerRef.current;
+        if (track) {
+          // compute width of single original set by summing first `items.length` tiles
+          const tiles = track.querySelectorAll('.carousel-tile');
+          let originalWidth = 0;
+          const gapPx = parseFloat(getComputedStyle(track).gap) || 0;
+          if (tiles.length >= items.length) {
+            for (let i = 0; i < items.length; i++) {
+              originalWidth += tiles[i].offsetWidth;
+              if (i < items.length - 1) originalWidth += gapPx;
+            }
+          } else {
+            originalWidth = track.scrollWidth / 2; // fallback
+          }
+
+          // Determine how many original sets we need so when we render that set twice
+          // the track covers the viewport without gaps. We aim for cycleWidth >= containerWidth + originalWidth
+          const containerWidth = (containerEl && containerEl.clientWidth) || window.innerWidth;
+          const desired = containerWidth + originalWidth;
+          let repeats = 1;
+          if (originalWidth > 0) repeats = Math.max(1, Math.ceil(desired / originalWidth));
+          repeats = Math.max(2, repeats); // ensure at least 2 for natural looping
+          setRepeatCount(repeats);
+
+          cycleWidthRef.current = originalWidth * repeats;
+        }
+
+        // ResizeObserver to update measurement when layout changes
+        if (typeof ResizeObserver !== 'undefined') {
+          ro = new ResizeObserver(() => {
+            const track2 = trackRef.current;
+            if (track2) {
+              const tiles2 = track2.querySelectorAll('.carousel-tile');
+              let originalWidth2 = 0;
+              const gapPx2 = parseFloat(getComputedStyle(track2).gap) || 0;
+              if (tiles2.length >= items.length) {
+                for (let i = 0; i < items.length; i++) {
+                  originalWidth2 += tiles2[i].offsetWidth;
+                  if (i < items.length - 1) originalWidth2 += gapPx2;
+                }
+              } else {
+                originalWidth2 = track2.scrollWidth / 2;
+              }
+              const container2 = containerRef.current;
+              const containerWidth2 = (container2 && container2.clientWidth) || window.innerWidth;
+              const desired2 = containerWidth2 + originalWidth2;
+              let repeats2 = 1;
+              if (originalWidth2 > 0) repeats2 = Math.max(1, Math.ceil(desired2 / originalWidth2));
+              repeats2 = Math.max(2, repeats2);
+              setRepeatCount(repeats2);
+              cycleWidthRef.current = originalWidth2 * repeats2;
+            }
+          });
+          if (track) ro.observe(track);
+        }
+
+        // IntersectionObserver to pause when offscreen
+        const containerObserve = containerRef.current;
+        if (containerObserve && typeof IntersectionObserver !== 'undefined') {
+          io = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+              pausedRef.current = !entry.isIntersecting;
+            });
+          }, { threshold: 0.05 });
+          io.observe(containerObserve);
+        }
+      };
+
+      preloadImages();
+
+      return () => {
+        cancelled = true;
+        if (ro) ro.disconnect();
+        if (io) io.disconnect();
+      };
+    }, [items]);
+
+    useEffect(() => {
+      const track = trackRef.current;
+      if (!track) return;
+
+      const step = (t) => {
+        if (pausedRef.current) {
+          lastTimeRef.current = t;
+          rafRef.current = requestAnimationFrame(step);
+          return;
+        }
+        if (lastTimeRef.current == null) lastTimeRef.current = t;
+        const dt = t - lastTimeRef.current;
+        lastTimeRef.current = t;
+
+        // speed is px per ms; update offset
+        const delta = speed * dt;
+        offsetRef.current -= delta;
+
+        // wrap using measured half width to avoid abrupt jumps
+        const cycle = cycleWidthRef.current || (track.scrollWidth / 2);
+        if (cycle > 0) {
+          if (-offsetRef.current >= cycle) {
+            offsetRef.current += Math.floor((-offsetRef.current) / cycle) * cycle;
+          }
+        }
+
+        // apply transform with translate3d for GPU acceleration
+        // Use a rounded value to avoid subpixel layout jitter on some devices
+        track.style.transform = `translate3d(${Math.round(offsetRef.current)}px, 0, 0)`;
+
+        rafRef.current = requestAnimationFrame(step);
+      };
+
+      rafRef.current = requestAnimationFrame(step);
+      return () => cancelAnimationFrame(rafRef.current);
+    }, [speed, items]);
+
+    return (
+      <div className="carousel-container" ref={containerRef} aria-hidden>
+        <div className="carousel-track" ref={trackRef}>
+          {Array.from({ length: repeatCount }).map((_, r) => (
+            items.map((it, i) => (
+              <div className="carousel-tile" key={`r${r}-c${i}`}>
+                <img src={it.src} alt={it.alt} loading="lazy" decoding="async" width="280" height="560" />
+              </div>
+            ))
+          ))}
+          {/* render one more set to guarantee continuous coverage */}
+          {items.map((it, i) => (
+            <div className="carousel-tile" key={`extra-${i}`}>
+              <img src={it.src} alt={it.alt} loading="lazy" decoding="async" width="280" height="560" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  const handleContactSubmit = useCallback((e) => {
     e.preventDefault();
     
     // Get form elements directly for better compatibility
@@ -32,7 +206,37 @@ function App() {
         alert(`Please send an email to: info@junepoint.com\n\nSubject: ${subject}\n\n${emailBody}`);
       });
     }
-  };
+  }, []);
+
+  const handleBetaSubmit = useCallback((e) => {
+    e.preventDefault();
+    
+    const form = e.target;
+    const email = form.elements.email.value;
+    const device = form.elements.device.value;
+    const message = form.elements.message.value;
+    
+    // Validate required fields
+    if (!email || !device || !message) {
+      alert('Please fill in all fields before submitting.');
+      return;
+    }
+    
+    // Create mailto URL with beta signup data
+    const subject = 'Android Beta Signup - Burn Journal';
+    const emailBody = `Android Beta Signup Request\n\nEmail: ${email}\nDevice: ${device}\n\nWhy I want to join the beta:\n${message}`;
+    const mailtoUrl = `mailto:info@junepoint.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(emailBody)}`;
+    
+    // Try to open email client
+    try {
+      window.location.href = mailtoUrl;
+      // Close modal after submission
+      setTimeout(() => setShowBetaModal(false), 500);
+    } catch (error) {
+      alert(`Please send your beta request to: info@junepoint.com\n\nSubject: ${subject}\n\n${emailBody}`);
+    }
+  }, []);
+
   return (
     <div className="App">
       {/* Animated Background */}
@@ -47,6 +251,10 @@ function App() {
               src="/brand_kit/burn-journal-high-resolution-logo-transparent-pfp.png" 
               alt="Burn Journal Logo" 
               className="logo-img"
+              fetchPriority="high"
+              decoding="async"
+              width="50"
+              height="50"
             />
             <span className="stacked-logo">
               <span className="logo-line">Burn</span>
@@ -161,88 +369,9 @@ function App() {
               journaling a truly therapeutic experience.
             </p>
           </div>
-
-          <div className="iphone-carousel">
-            <div className="carousel-track">
-              <div className="iphone-mockup">
-                <div className="iphone-frame">
-                  <div className="iphone-notch"></div>
-                  <div className="iphone-screen">
-                    <img 
-                      src="/brand_kit/IMG_2828 (1).PNG" 
-                      alt="Burn Journal App Screenshot 1"
-                      className="screenshot"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="iphone-mockup">
-                <div className="iphone-frame">
-                  <div className="iphone-notch"></div>
-                  <div className="iphone-screen">
-                    <img 
-                      src="/brand_kit/IMG_2829 (1).PNG" 
-                      alt="Burn Journal App Screenshot 2"
-                      className="screenshot"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="iphone-mockup">
-                <div className="iphone-frame">
-                  <div className="iphone-notch"></div>
-                  <div className="iphone-screen">
-                    <img 
-                      src="/brand_kit/IMG_2830 (1).PNG" 
-                      alt="Burn Journal App Screenshot 3"
-                      className="screenshot"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="iphone-mockup">
-                <div className="iphone-frame">
-                  <div className="iphone-notch"></div>
-                  <div className="iphone-screen">
-                    <img 
-                      src="/brand_kit/IMG_2831 (1).PNG" 
-                      alt="Burn Journal App Screenshot 4"
-                      className="screenshot"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Duplicate for infinite loop effect */}
-              <div className="iphone-mockup">
-                <div className="iphone-frame">
-                  <div className="iphone-notch"></div>
-                  <div className="iphone-screen">
-                    <img 
-                      src="/brand_kit/IMG_2828 (1).PNG" 
-                      alt="Burn Journal App Screenshot 1"
-                      className="screenshot"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="iphone-mockup">
-                <div className="iphone-frame">
-                  <div className="iphone-notch"></div>
-                  <div className="iphone-screen">
-                    <img 
-                      src="/brand_kit/IMG_2829 (1).PNG" 
-                      alt="Burn Journal App Screenshot 2"
-                      className="screenshot"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+          {/* Optimized carousel rendering */}
+          <div style={{ marginTop: '2.5rem' }}>
+            <OptimizedCarousel items={screenshots} speed={0.03} />
           </div>
         </section>
 
@@ -255,11 +384,19 @@ function App() {
               writing and letting go. Download Burn Journal today.
             </p>
             <div className="hero-cta">
-              <button className="btn btn-white">
+              <a 
+                href="https://apps.apple.com/us/app/burn-journal/id6753882779" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="btn btn-white"
+              >
                 Download for iOS
                 <span>📱</span>
-              </button>
-              <button className="btn btn-white">
+              </a>
+              <button 
+                className="btn btn-white"
+                onClick={() => setShowBetaModal(true)}
+              >
                 Download for Android
                 <span>🤖</span>
               </button>
@@ -385,8 +522,6 @@ function App() {
           <ul className="footer-links">
             <li><a href="/privacy_policy/privacy.html">Privacy Policy</a></li>
             <li><a href="/terms_of_service/terms.html">Terms of Service</a></li>
-            <li><a href="#support">Support</a></li>
-            <li><a href="/contact/contact.html">Contact</a></li>
           </ul>
           <p>© 2025 Burn Journal. All rights reserved.</p>
           <p style={{ marginTop: '1rem', fontSize: '0.875rem' }}>
@@ -394,6 +529,86 @@ function App() {
           </p>
         </footer>
       </div>
+
+      {/* Android Beta Signup Modal */}
+      {showBetaModal && (
+        <div className="modal-overlay" onClick={() => setShowBetaModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={() => setShowBetaModal(false)}>
+              ✕
+            </button>
+            
+            <div className="modal-header">
+              <div className="section-badge">COMING SOON</div>
+              <h2>Android Beta Program</h2>
+              <p>
+                Burn Journal for Android is currently in development. Sign up to be 
+                considered for our beta testing program!
+              </p>
+            </div>
+
+            <div className="beta-info-notice">
+              <span className="info-icon">ℹ️</span>
+              <p>
+                <strong>Important:</strong> Beta spots are limited. Submitting this form 
+                does not guarantee acceptance into the beta program. We'll review all 
+                applications and contact selected testers via email.
+              </p>
+            </div>
+
+            <form className="beta-form" onSubmit={handleBetaSubmit}>
+              <div className="form-group">
+                <label htmlFor="beta-email">Email Address *</label>
+                <input 
+                  type="email" 
+                  id="beta-email" 
+                  name="email" 
+                  required 
+                  className="form-input"
+                  placeholder="your@email.com"
+                  autoComplete="email"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="beta-device">Android Device *</label>
+                <input 
+                  type="text" 
+                  id="beta-device" 
+                  name="device" 
+                  required 
+                  className="form-input"
+                  placeholder="e.g., Samsung Galaxy S23, Google Pixel 8"
+                  autoComplete="off"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="beta-message">Why do you want to join the beta? *</label>
+                <textarea 
+                  id="beta-message" 
+                  name="message" 
+                  required 
+                  className="form-textarea"
+                  placeholder="Tell us why you're interested in testing Burn Journal on Android..."
+                  rows="5"
+                  autoComplete="off"
+                ></textarea>
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn btn-secondary" onClick={() => setShowBetaModal(false)}>
+                  Cancel
+                </button>
+                <button type="submit" className="btn btn-primary">
+                  Submit Application
+                  <span>→</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

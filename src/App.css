@@ -22,6 +22,12 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
@@ -36,6 +42,7 @@ body {
 .App {
   min-height: 100vh;
   position: relative;
+  contain: layout style;
 }
 
 /* Animated background - Optimized */
@@ -49,6 +56,8 @@ body {
   background: var(--bg-dark);
   overflow: hidden;
   will-change: auto;
+  contain: strict;
+  pointer-events: none;
 }
 
 .app-background::before {
@@ -220,6 +229,8 @@ body {
   position: relative;
   overflow: hidden;
   will-change: transform;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btn-primary {
@@ -292,10 +303,11 @@ body {
   border: 1px solid var(--card-border);
   border-radius: 20px;
   padding: 2.5rem;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
   position: relative;
   overflow: hidden;
   will-change: transform;
+  contain: layout style paint;
 }
 
 .feature-card::before {
@@ -349,74 +361,67 @@ body {
   position: relative;
   overflow: hidden;
   padding: 2rem 0;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+}
+
+.carousel-container {
+  overflow: hidden;
+  width: 100%;
+  display: flex;
+  justify-content: center;
 }
 
 .carousel-track {
   display: flex;
-  gap: 3rem;
-  animation: scroll 30s linear infinite;
+  gap: 1rem;
   width: max-content;
-}
-
-@keyframes scroll {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  will-change: transform;
+  transform: translate3d(0,0,0);
 }
 
 .iphone-mockup {
   flex-shrink: 0;
-  filter: drop-shadow(0 20px 60px rgba(0, 0, 0, 0.5));
+  /* Avoid expensive filters on each frame; use a lightweight box-shadow instead */
+  box-shadow: 0 18px 36px rgba(0,0,0,0.35);
+  contain: layout style paint;
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
-.iphone-frame {
+/* Lightweight carousel tile replacing heavy phone mockups */
+.carousel-tile {
+  flex-shrink: 0;
   width: 280px;
-  height: 570px;
-  background: linear-gradient(145deg, #2a2d2e, #1a1c1d);
-  border-radius: 40px;
-  padding: 12px;
-  position: relative;
-  border: 3px solid #3a3d3e;
-  box-shadow: 
-    inset 0 0 6px rgba(255, 255, 255, 0.1),
-    0 0 0 1px rgba(0, 0, 0, 0.5);
+  height: 560px;
+  display: block;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  overflow: visible;
+  box-shadow: none !important;
+  will-change: transform;
 }
 
-.iphone-notch {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 120px;
-  height: 28px;
-  background: #000;
-  border-radius: 0 0 20px 20px;
-  z-index: 10;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.iphone-notch::before {
-  content: '';
-  position: absolute;
-  top: 8px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50px;
-  height: 5px;
-  background: #1a1c1d;
-  border-radius: 3px;
-}
-
-.iphone-screen {
+.carousel-tile img {
   width: 100%;
   height: 100%;
-  background: #000;
-  border-radius: 32px;
-  overflow: hidden;
-  position: relative;
+  object-fit: contain;
+  display: block;
+  background: transparent;
 }
 
 .screenshot {
@@ -424,6 +429,9 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
+  will-change: auto;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
 }
 
 /* CTA Section - Optimized */
@@ -641,7 +649,8 @@ body {
   color: var(--text-light);
   font-family: inherit;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .form-input:focus,
@@ -687,6 +696,142 @@ body {
 .note-icon {
   flex-shrink: 0;
   font-size: 1rem;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  animation: fadeIn 0.3s ease-out;
+  will-change: opacity;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-content {
+  background: var(--bg-dark);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 2.5rem;
+  position: relative;
+  animation: slideUp 0.3s ease-out;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  will-change: transform, opacity;
+  contain: layout style paint;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+  background: var(--card-bg);
+  color: var(--text-light);
+}
+
+.modal-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.modal-header h2 {
+  margin: 0.5rem 0 1rem;
+  font-size: 1.75rem;
+  color: var(--text-light);
+}
+
+.modal-header p {
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.beta-info-notice {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.info-icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.beta-info-notice p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-light);
+}
+
+.beta-info-notice strong {
+  color: #ffc107;
+}
+
+.beta-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.modal-actions .btn {
+  min-width: 120px;
 }
 
 /* Responsive Design */
@@ -765,6 +910,23 @@ body {
 
   .contact-form-container {
     padding: 1.5rem;
+  }
+
+  .modal-content {
+    padding: 2rem 1.5rem;
+    max-height: 95vh;
+  }
+
+  .modal-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
   }
 }
 
